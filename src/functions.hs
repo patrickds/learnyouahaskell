@@ -104,8 +104,8 @@ calcBmis xs = [bmi w h | (w, h) <- xs]
     where bmi weight height = weight / height ^ 2 
 
 -- Lets -- 
---calcBmis :: (RealFloat a) => [(a, a)] -> [a]  
---calcBmis xs = [bmi | (w, h) <- xs, let bmi = w / h ^ 2]  
+calcBmis' :: (RealFloat a) => [(a, a)] -> [a]  
+calcBmis' xs = [bmi | (w, h) <- xs, let bmi = w / h ^ 2]  
 
 cylinder :: (RealFloat a) => a -> a -> a  
 cylinder r h = 
@@ -114,24 +114,21 @@ cylinder r h =
     in  sideArea + 2 * topArea
 
 -- Case --
---head' :: [a] -> a  
---head' [] = error "No head for empty lists!"  
---head' (x:_) = x
 
---head' :: [a] -> a  
---head' xs = case xs of [] -> error "No head for empty lists!"  
---                      (x:_) -> x 
+head'' :: [a] -> a  
+head'' xs = case xs of [] -> error "No head for empty lists!"  
+                       (x:_) -> x 
 
 describeList :: [a] -> String  
 describeList xs = "The list is " ++ case xs of [] -> "empty."  
                                                [x] -> "a singleton list."   
                                                xs -> "a longer list."
 
---describeList :: [a] -> String  
---describeList xs = "The list is " ++ what xs  
---    where what [] = "empty."  
---          what [x] = "a singleton list."  
---          what xs = "a longer list."
+describeList' :: [a] -> String  
+describeList' xs = "The list is " ++ what xs  
+   where what [] = "empty."  
+         what [x] = "a singleton list."  
+         what xs = "a longer list."
 
 -- Recursion
 
@@ -144,7 +141,10 @@ maximum' (x:xs)
     where maxTail = maximum' xs 
 
 -- cleaner way
--- maximum' (x:xs) = max x (maximum' xs) 
+maximum'' :: (Ord a) => [a] -> a  
+maximum'' [] = error "maximum of empty list"  
+maximum'' [x] = x  
+maximum'' (x:xs) = max x (maximum'' xs) 
 
 replicate' :: (Num a, Ord a) => a -> b -> [b]
 replicate' n x
@@ -194,9 +194,12 @@ zipWith' _ _ [] = []
 zipWith' f (x:xs) (y:ys) = f x y : zipWith' f xs ys
 
 flip' :: (a -> b -> c) -> (b -> a -> c)
--- flip' f = g
---     where g x y = f y x
-flip' f x y = f y x
+flip' f = g
+    where g x y = f y x
+
+flip'' :: (a -> b -> c) -> (b -> a -> c)
+flip'' f x y = f y x
+
 
 map' :: (a -> b) -> [a] -> [b]
 map' _ [] = []
@@ -208,11 +211,11 @@ filter' p (x:xs)
     | p x = x : filter p xs
     | otherwise = filter p xs
 
--- quicksort' :: (Ord a) => [a] -> [a]
--- quicksort' [] = []
--- quicksort' (x:xs) = smaller ++ [x] ++ bigger
---     where smaller = quicksort' (filter (<=x) xs)
---           bigger = quicksort' (filter (>x) xs)
+quicksort'' :: (Ord a) => [a] -> [a]
+quicksort'' [] = []
+quicksort'' (x:xs) = smaller ++ [x] ++ bigger
+    where smaller = quicksort'' (filter (<=x) xs)
+          bigger = quicksort'' (filter (>x) xs)
 
 largestDivisible :: (Integral a) => a
 largestDivisible = head (filter p [100000, 99999 ..])
@@ -231,5 +234,46 @@ collatzSequence n
     | odd n = n:collatzSequence (n * 3 + 1)
 
 numLongCollatzSequences :: Int  
-numLongCollatzSequences = length (filter isLong (map chain [1..100]))  
+numLongCollatzSequences = length (filter isLong (map collatzSequence [1..100]))  
     where isLong xs = length xs > 15
+
+foldl' :: (b -> a -> b) -> b -> [a] -> b
+foldl' _ a [] = a
+foldl' f a (x:xs) = foldl' f (f a x) xs
+
+sum'' :: (Num a) => [a] -> a
+-- sum'' xs = foldl (+) 0 xs -- functions are curried you dumb!
+sum'' = foldl' (+) 0
+
+sum''' :: (Num a) => [a] -> a
+sum''' xs = foldl add 0 xs
+
+add :: (Num a) => a -> a -> a
+add a b = a + b
+
+elem'' :: (Eq a) => a -> [a] -> Bool
+-- elem'' e xs = foldl' (\acc x -> if x == e then True else acc) False xs -- curry it
+elem'' e = foldl' (\ acc x -> ((x == e) || acc)) False
+
+foldr' :: (a -> b -> b) -> b -> [a] -> b
+foldr' _ b [] = b
+foldr' f b (x:xs) = f x (foldr' f b xs)
+
+map'' :: (a -> a) -> [a] -> [a]
+map'' f = foldr' (\ x acc -> f x : acc) []
+
+-- function composition (point free style)
+fn x = ceiling (negate (tan (cos (max 50 x)))) 
+fn' = ceiling . negate . tan . cos . max 50
+
+oddSquareSum :: Integer
+oddSquareSum = sum (takeWhile (<10000) (filter odd (map (^2) [1..])))
+
+oddSquareSum' :: Integer
+oddSquareSum' = sum . takeWhile (<10000) . filter odd . map (^2) $ [1..]
+
+oddSquareSum'' :: Integer
+oddSquareSum'' =
+    let oddSquares = filter odd $ map (^2) [1..]
+        belowLimit = takeWhile (<10000) oddSquares
+    in sum belowLimit

@@ -19,3 +19,18 @@ elementAt (x:xs) i
     | i < 1 = error "index out of bounds"
     | otherwise = elementAt xs (i - 1)
 
+-- 4
+length' :: [a] -> Int
+length' [] = 0
+length' (_:xs) = 1 + length' xs
+
+-- 5
+reverse' :: [a] -> [a]
+reverse' [] = []
+reverse' (x:xs) = reverse' xs ++ [x]
+
+-- 6
+isPalindrome :: (Eq a) => [a] -> Bool
+isPalindrome [] = True
+isPalindrome [_] = True
+isPalindrome xs = head xs == last xs && isPalindrome (init $ tail xs)
