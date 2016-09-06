@@ -277,3 +277,10 @@ oddSquareSum'' =
     let oddSquares = filter odd $ map (^2) [1..]
         belowLimit = takeWhile (<10000) oddSquares
     in sum belowLimit
+
+stringToIntList :: String -> [Int]
+stringToIntList xs = map read $ words xs :: [Int]
+
+intersperse :: a -> [a] -> [a]
+intersperse _ [x] = [x]
+intersperse e (x:xs) = x:e:intersperse e xs 
